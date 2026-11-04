@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="R7 SCRIPTS — hub de scripts.">
+  <title>R7 SCRIPTS</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <button class="admin-trigger" id="adminTrigger" aria-label="Abrir painel administrativo" title="Painel">☰</button>
+    <a class="brand" href="/" aria-label="R7 SCRIPTS início">
+      <img src="/favicon.png" alt="" class="brand-icon">
+      <span>R7 <b>SCRIPTS</b></span>
+    </a>
+    <div class="top-links"><a class="active" href="/">Scripts</a></div>
+  </header>
+
+  <main class="main">
+    <section class="hero">
+      <h1>Bem-vindo ao <span>R7 SCRIPTS</span></h1>
+      <p>Hub de scripts para Roblox.</p>
+      <label class="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" placeholder="Pesquisar scripts ou jogos..." autocomplete="off">
+      </label>
+    </section>
+    <section id="embedGrid" class="embed-grid" aria-live="polite">
+      <div class="loading">Carregando publicações...</div>
+    </section>
+    <div id="emptyState" class="empty hidden">Nenhum embed publicado ainda.</div>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> R7 SCRIPTS</p>
+    <span>Scripts · Comunidade</span>
+  </footer>
+
+  <!-- Detalhes do embed -->
+  <div class="overlay hidden" id="detailOverlay">
+    <section class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="modal-head"><h2 id="detailTitle">Script</h2><button class="icon-btn" data-close="detailOverlay" aria-label="Fechar">×</button></div>
+      <div class="modal-body">
+        <img id="detailImage" class="detail-image hidden" alt="">
+        <p id="detailDescription" class="detail-description"></p>
+      </div>
+      <div class="modal-foot"><button class="btn secondary" data-close="detailOverlay">Fechar</button><button class="btn primary" id="startClaim">Pegar Script</button></div>
+    </section>
+  </div>
+
+  <!-- Fluxo TikTok / Discord -->
+  <div class="overlay hidden" id="claimOverlay">
+    <section class="modal claim-modal" role="dialog" aria-modal="true" aria-labelledby="claimTitle">
+      <div class="modal-head"><h2 id="claimTitle">Desbloquear Script</h2><button class="icon-btn" data-close="claimOverlay" aria-label="Fechar">×</button></div>
+      <div class="modal-body">
+        <div class="step-meta"><b id="stepLabel">Passo 1 de 2</b><span id="stepCount">0/2 concluídas</span></div>
+        <div class="progress"><span id="progressBar"></span></div>
+        <article class="task-card" id="taskCard">
+          <div class="task-icon" id="taskIcon">♪</div>
+          <div class="task-copy"><strong id="taskTitle">Siga no TikTok</strong><small id="taskSubtitle">Siga a conta e volte para continuar.</small></div>
+          <button class="btn primary small" id="openTask">Abrir TikTok</button>
+        </article>
+        <p class="wait-message hidden" id="waitMessage">Aguarde 8 segundos antes de continuar.</p>
+        <div class="question-box hidden" id="questionBox">
+          <strong id="questionText">Seguiu a conta?</strong>
+          <div class="answer-row"><button class="btn secondary" id="answerNo">Não</button><button class="btn primary" id="answerYes">Sim</button></div>
+        </div>
+        <p class="claim-error hidden" id="claimError"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Login admin -->
+  <div class="overlay hidden" id="loginOverlay">
+    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <div class="modal-head"><h2 id="loginTitle">Acesso administrativo</h2><button class="icon-btn" data-close="loginOverlay" aria-label="Fechar">×</button></div>
+      <form id="loginForm" class="modal-body">
+        <label class="field">Código de acesso<input id="adminCode" type="password" inputmode="numeric" placeholder="Digite o código" required></label>
+        <p class="form-error hidden" id="loginError"></p>
+        <button class="btn primary full" type="submit">Entrar</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Painel admin -->
+  <div class="overlay admin-overlay hidden" id="adminOverlay">
+    <section class="modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modal-head"><div><h2 id="adminTitle">Painel R7</h2><p class="muted">Gerencie os embeds públicos</p></div><button class="icon-btn" data-close="adminOverlay" aria-label="Fechar">×</button></div>
+      <div class="admin-tabs">
+        <button class="tab active" data-tab="publishPanel">Publicar</button>
+        <button class="tab" data-tab="analyticsPanel">Análises</button>
+        <button class="tab" data-tab="managePanel">Embeds Públicos</button>
+      </div>
+      <div class="admin-content">
+        <section id="publishPanel" class="tab-panel">
+          <form id="publishForm" class="publish-form">
+            <div class="field">
+              <span>Imagem</span>
+              <label class="upload-control" for="embedImageFile">
+                <span class="upload-icon">＋</span>
+                <span><strong>Escolher imagem do dispositivo</strong><small>PNG, JPG, WEBP ou GIF · até 5 MB</small></span>
+                <input id="embedImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+              </label>
+              <div id="imagePreviewWrap" class="image-preview-wrap hidden">
+                <img id="imagePreview" alt="Pré-visualização da imagem selecionada">
+                <button type="button" id="removeImage" class="btn secondary small">Remover imagem</button>
+              </div>
+              <label class="field image-url-field">Ou usar URL da imagem (opcional)<input id="embedImage" type="url" placeholder="https://..."></label>
+            </div>
+            <label class="field">Nome<input id="embedName" maxlength="90" required placeholder="Nome do script"></label>
+            <label class="field">Descrição<textarea id="embedDescription" maxlength="500" rows="3" required placeholder="Descreva o script..."></textarea></label>
+            <label class="field">Entregar<input id="embedUrl" type="text" required placeholder="Digite qualquer conteúdo..."></label>
+            <p class="form-error hidden" id="publishError"></p>
+            <button class="btn primary" type="submit">Publicar embed</button>
+          </form>
+        </section>
+        <section id="analyticsPanel" class="tab-panel hidden">
+          <div class="stats">
+            <div class="stat"><small>Embeds publicados</small><strong id="totalEmbeds">0</strong></div>
+            <div class="stat"><small>Visualizações</small><strong id="totalViews">0</strong></div>
+          </div>
+          <div class="chart-card"><h3>Desempenho por embed</h3><div id="chartBars" class="chart-bars"></div></div>
+        </section>
+        <section id="managePanel" class="tab-panel hidden">
+          <div id="manageList" class="manage-list"></div>
+        </section>
+      </div>
+      <div class="modal-foot admin-foot"><button class="btn secondary" id="logoutButton">Sair do painel</button></div>
+    </section>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>
